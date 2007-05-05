@@ -1,0 +1,12 @@
+dA/dt = -delta*A(t)                                  when t <  tau
+        -delta*A(t) + P*A(t-tau)*e^-(A(t-tau)/A_0)   when t >= tau
+
+Where A is the population of adult flies
+
+      tau is the development time from eggs to adulthood
+
+      P is the maximum adult fecundity rate multiplied by 
+      the survival rate from egg to adult.
+
+      A_o determining how quickly fecundity declines with 
+      adult population. 

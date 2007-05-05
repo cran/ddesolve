@@ -1,0 +1,30 @@
+v0.51 - May 06, 2007
+	*renamed initstate to ddeinitstate in C code
+
+v0.50 - May 05, 2007
+	*Released to Cran as version 0.50
+
+v0.07 - mar 12, 2007
+	*added check for restoring working directories in demos
+
+v0.06 - mar 11, 2007
+	*removed .rc files
+
+v0.05 - mar 3,2007
+	*changed demos
+
+v0.04 - feb 23
+	*added error checking to prevent calls to pastvalue(t)
+	*switched order of `t` and `y` expected from user supplied `func`. Now is func(t,y,parms)
+	*created user guide "ddesolve-ug.pdf"
+	
+v0.03 - feb 23
+	*fixed bug where pastvalue() could not be called during `func` test
+	 it just returns initial values during the `func` test phase
+	
+v0.02 - feb 22
+	*added pastgradient R wrapper function
+	*added demos
+
+v0.01 - feb 18
+	*created package around simon wood's numerical routinues from solv95

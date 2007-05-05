@@ -1,0 +1,6 @@
+blowflies         A DDE model of Gurney and Nisbet's (1981) model of 
+                  Nicholson's (1954) blowflies. (requires PBSmodelling)
+
+cooling           An ODE of newton's law of cooling
+
+lorenz            An ODE of the Lorenz equation

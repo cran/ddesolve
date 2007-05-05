@@ -1,0 +1,27 @@
+window title="Nicholson\'s Blowflies Model" onClose=onClose
+
+#-----------------------------------------------------
+grid 1 4 sticky=W
+	label text=View: font=bold
+	button text=Docs func=openFile action=demo_files/blowflies_doc.txt
+	button text="R Code" func=openFile action=demo/blowflies.r
+	button text=Window func=openFile action=demo_files/blowflies_win.txt
+
+#-----------------------------------------------------
+label text="Simulation" font=bold fg=violetred1 sticky=SW
+vector names="tau P theta delta initPop t0 t1" \
+       labels="tau P A_0 delta initPop t0 t1" \
+       values="12 10 300 0.25 100 0 300" \
+       func=runPlot vert=T
+
+#-----------------------------------------------------
+label text="Plot Type" font=bold fg=purple3 sticky=SW
+grid 1 2
+	grid 2 1
+		radio name=ptype text="Time Series" value="t" mode=character sticky=W
+		radio name=ptype text="Pairs" value="p" mode=character sticky=W
+	button func=runPlot text="Plot" sticky=SW bg="#89cf3d"
+
+#-----------------------------------------------------
+label text="History" font=bold fg=blue3 sticky=SW pady=10
+history import="demo_files/blowflies_history.r" func=runPlot

@@ -1,0 +1,11 @@
+the rate of change in cooling is proportional to the difference of tempurature
+between the coffee cup and room tempurature. This can be expressed as
+
+dy/dt ~ y - Tenv
+
+where y is the tempurature of the cup of coffee
+and Tenv is the room tempurature.
+By including a cooling constant, rho, the model becomes:
+
+dy/dt = -rho * (y - Tenv)
+
