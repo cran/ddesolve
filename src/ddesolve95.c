@@ -10,6 +10,15 @@
 int the_test_phase=0;
 
 /*===========================================================================*/
+SEXP lang5(SEXP s, SEXP t, SEXP u, SEXP v, SEXP w)
+{
+    PROTECT(s);
+    s = LCONS(s, list4(t, u, v, w));
+    UNPROTECT(1);
+    return s;
+}
+
+/*===========================================================================*/
 void PBSerror(char *str)
 {
 	error(str);
@@ -29,10 +38,18 @@ void output(double *s,double t)
 	  and [1..(no_var+1)] are reserved for s[0..no_var] vars
 	  */
 	int i;
+	static double *dummy_var=NULL;
+	if( dummy_var == NULL )
+		dummy_var = malloc( data.no_var*sizeof(double) );
 	data.vals[0][data.vals_ind] = t;
-	for(i=0;i<data.no_var;i++)
+	for( i = 0; i < data.no_var; i++ )
 		data.vals[i+1][data.vals_ind] = s[i];
-	for(i=0;i<data.no_otherVars;i++)
+	
+	//ACB hack - call grad to pull out any other data
+	if( data.no_otherVars > 0 )
+		grad(dummy_var,s,NULL,t);
+	
+	for( i = 0; i < data.no_otherVars; i++ )
 		data.vals[1+data.no_var+i][data.vals_ind] = data.tmp_other_vals[i];
 	
 	data.vals_ind++;
@@ -51,44 +68,59 @@ void output(double *s,double t)
 /* cont is zero for fresh run, and 1 for continuation */
 void numerics(double *c,int cont)
 { 
-  static double *s;
-  double t0,t1,dt,dout;
-  int ns,nsw,nhv,nlag,reset=1,fixstep=0;
-  static int first=1;
-  long hbsize;
-  ns=data.no_var;nsw=data.nsw;nhv=data.nhv;nlag=data.nlag;
-  t0=data.t0;t1=data.t1;dt=data.dt;dout=data.dout;hbsize=data.hbsize;
-  if (cont) reset=0;
-  if (!cont)
-  { if (!first) { free(s);first=0;}
-    s=(double *)calloc(data.no_var,sizeof(double));
-    ddeinitstate(s,c,t0);
-  }
-  dde(s,c,t0,t1,&dt,data.tol,dout,ns,nsw,nhv,hbsize,nlag,reset,fixstep);
-  data.dt=dt;
+	static double *s;
+	double t0, t1, dt, *otimes; // bjc 2007-05-08
+	int ns, nsw, nhv, nlag, reset=1, fixstep=0, no_otimes; // bjc 2007-05-08
+	static int first=1;
+	long hbsize;
+	ns=data.no_var;
+	nsw=data.nsw;
+	nhv=data.nhv;
+	nlag=data.nlag;
+	t0=data.t0;
+	t1=data.t1;
+	dt=data.dt;
+	hbsize=data.hbsize;
+	otimes=data.otimes;
+	no_otimes=data.no_otimes; // bjc 2007-05-08
+  
+	if (cont) {
+		reset=0;
+	} else {
+		if (!first) {
+			free(s);
+			first=0;
+  		}
+		s=(double *)calloc(data.no_var,sizeof(double));
+		ddeinitstate(s,c,t0);
+	}
+	dde(s,c,t0,t1,&dt,data.tol,otimes,no_otimes,ns,nsw,nhv,hbsize,nlag,reset,fixstep); // bjc 2007-05-08
+	data.dt=dt;
 }
 
 /*===========================================================================*/
-void setupglobaldata(int no_vars, int no_otherVars, double *settings)
+void setupglobaldata(int no_vars, int no_otherVars, int no_switch, double *settings, double *otimes, int no_otimes) // bjc 2007-05-08
 { 
-  int i;
+	int i;
 
-  data.tol=settings[0];
-  data.t0=settings[1];        /* start time */
-  data.t1=settings[2];        /* stop time */
+	data.tol=settings[0];
+	data.t0=settings[1];        /* start time */
+	data.t1=settings[2];        /* stop time */
   
-  data.dt=settings[3];        /* initial timestep */
-  data.dout = settings[4];    /* approximate average output timestep */
+	data.dt=settings[3];        /* initial timestep */
+	
+	data.hbsize=settings[4];    /* how many past values to store for each history variable */
+	data.no_var=no_vars;
+  
+	data.no_otherVars=no_otherVars;
 
-  data.hbsize=settings[5];    /* how many past values to store for each history variable */
-  data.no_var=no_vars;
-  
-  data.no_otherVars=no_otherVars;
+	data.nsw=no_switch;          /* number of switch varaibles */  
+	data.nhv=no_vars;         /* Number of history (lagged) variables */
+	data.nlag=1;        /* Number of lag markers per history variable (set to 1 if unsure)*/
 
-  data.nsw=0;          /* number of switch varaibles */  
-  data.nhv=no_vars;         /* Number of history (lagged) variables */
-  data.nlag=1;        /* Number of lag markers per history variable (set to 1 if unsure)*/
-  
+	/* enter out times into the data structure */
+	data.otimes = otimes; // bjc 2007-05-08: could be NULL
+	data.no_otimes = no_otimes; // bjc 2007-05-08: >= 0  
 
 	data.vals_size=1000; /* size will grow, this is just initial min size */
 	data.vals_ind=0;
@@ -182,25 +214,99 @@ int testFunc(int no_var, double *test_vars, double t, SEXP *names, PROTECT_INDEX
 	return(len);
 }
 
+int testSwitchFunc(int no_var, double *test_vars, double t)
+{
+	SEXP fcall, p1, p2, result;
+	int len;
+	
+	if (isNull(r_stuff.switchFunc))
+		return 0;
+	
+	/* argument 1 `t' */
+	PROTECT(p1=NEW_NUMERIC(1));
+	memcpy(NUMERIC_POINTER(p1), &t, sizeof(double));
+    
+	/* argument 2 `s' */
+	PROTECT(p2=NEW_NUMERIC(no_var));
+	memcpy(NUMERIC_POINTER(p2), test_vars, no_var*sizeof(double));
+	
+	if (r_stuff.useParms)
+		PROTECT(fcall = lang4(r_stuff.switchFunc, p1, p2, r_stuff.parms));
+    else
+   		PROTECT(fcall = lang3(r_stuff.switchFunc, p1, p2));
+    PROTECT(result = eval(fcall, r_stuff.env));
+    
+	if (!isReal(result)) {
+		error("func return error: should return numeric vector or list. (got type \"%i\")\n", TYPEOF(result));
+	}
+	
+	len = LENGTH(result);
+	
+	UNPROTECT(4);
+	return(len);
+}
+
+int testMapFunc(int no_var, double *test_vars, double t, int switch_num)
+{
+	SEXP fcall, p1, p2, p3, result;
+	int len;
+	
+	if (isNull(r_stuff.mapFunc))
+		error("mapFunc is missing, but switchFunc was supplied. both must be defined, or both null");
+	
+	/* argument 1 `t' */
+	PROTECT(p1=NEW_NUMERIC(1));
+	memcpy(NUMERIC_POINTER(p1), &t, sizeof(double));
+    
+	/* argument 2 `s' */
+	PROTECT(p2=NEW_NUMERIC(no_var));
+	memcpy(NUMERIC_POINTER(p2), test_vars, no_var*sizeof(double));
+
+	/* argument 3 `switchnum' */
+	PROTECT(p3=NEW_NUMERIC(1));
+	NUMERIC_POINTER(p3)[0] = switch_num;
+
+	if (r_stuff.useParms)
+    	PROTECT(fcall = lang5(r_stuff.mapFunc, p1, p2, p3, r_stuff.parms));
+    else
+		PROTECT(fcall = lang4(r_stuff.mapFunc, p1, p2, p3));	
+    PROTECT(result = eval(fcall, r_stuff.env));
+    
+	if (!isReal(result))
+		error("mapFunc return error: should return numeric vector. (got type \"%i\")\n", TYPEOF(result));
+		
+	len = LENGTH(result);
+	if (len != no_var)
+		error("mapFunc return error: should return vector of length %i \n", no_var);
+	
+	UNPROTECT(5);
+	return(len);
+}
+
 /*===========================================================================*/
-SEXP startDDE(SEXP gradFunc, SEXP env, SEXP yinit, SEXP parms, SEXP settings)
+SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit, SEXP parms, SEXP settings, SEXP outtimes)
 {
 	SEXP list, vect, extra_names, yinit_names, names;
 	PROTECT_INDEX extra_names_ipx;
-	double *p;
-	int i,j, no_var, no_otherVar;
+	double *p, *otimes; // bjc 2007-05-08
+	int i,j, no_var, no_otherVar, no_switch, no_otimes; // bjc 2007-05-08
 	char ch_buf[CH_BUF_SIZE];
 	
 	/* save R global data for later */
 	if(!isFunction(gradFunc)) error("‘gradFunc’ must be a function");
+	/*TODO check switchFunc is a func, or mark as missing or null*/
 	if(!isEnvironment(env)) error("‘env’ should be an environment");
 	if(!isNumeric(yinit)) error("‘yinit’ should be a numeric vector");
 	if(!isNumeric(settings)) error("‘settings’ should be a numeric vector");
+	if(!isNumeric(outtimes) && !isNull(outtimes)) error("‘times’ should be a numeric vector or NULL"); // bjc 2007-05-08: check times vector
 	
 	r_stuff.env = env;
 	r_stuff.gradFunc = gradFunc;
+	r_stuff.switchFunc = switchFunc;
+	r_stuff.mapFunc = mapFunc;
 	r_stuff.parms = parms;
 	r_stuff.yinit = yinit;
+	r_stuff.outtimes = outtimes; // bjc 2007-05-08: add times to R data
 	
 	/* check if supplied function is func(y,t) or func(y,t,parms) */
 	list = FORMALS(gradFunc);
@@ -218,10 +324,17 @@ SEXP startDDE(SEXP gradFunc, SEXP env, SEXP yinit, SEXP parms, SEXP settings)
 	   ***must set the_test_phase to avoid errors in pastvalue and pastgradient */
 	the_test_phase=1;
 	PROTECT_WITH_INDEX(extra_names=R_NilValue, &extra_names_ipx);
-	no_otherVar=testFunc(LENGTH(yinit), NUMERIC_POINTER(yinit), NUMERIC_POINTER(settings)[1], 
+	no_otherVar=testFunc(no_var, NUMERIC_POINTER(yinit), NUMERIC_POINTER(settings)[1], 
 	                     &extra_names, &extra_names_ipx);
+	
+	/* test switchfunc and get number of results returned to set nsw */
+	no_switch = testSwitchFunc(no_var, NUMERIC_POINTER(yinit), NUMERIC_POINTER(settings)[1]);
+	
+	//test mapfunc for each nsw and check return val length
+	for( i = 1; i <= no_switch; i++ )
+		testMapFunc(no_var, NUMERIC_POINTER(yinit), NUMERIC_POINTER(settings)[1], i);
+	
 	the_test_phase=0;
-
 	
 	/* print names to see if it works */
 	PROTECT(names = allocVector(STRSXP, no_otherVar + no_var + 1));
@@ -248,8 +361,18 @@ SEXP startDDE(SEXP gradFunc, SEXP env, SEXP yinit, SEXP parms, SEXP settings)
 		}
 	}
 
+	/* bjc 2007-05-08:  check that the output times are numeric and get 
+	   a pointer and length */
+	if (!isNumeric(outtimes)) { // bjc 2007-05-08: if NULL
+	    otimes = NULL;
+	    no_otimes = 0;
+	}
+	else { // bjc 2007-05-08: if numeric
+	    otimes = NUMERIC_POINTER(outtimes); 
+	    no_otimes = LENGTH(outtimes);
+	}
 	
-	setupglobaldata(LENGTH(yinit), no_otherVar, NUMERIC_POINTER(settings));
+	setupglobaldata(LENGTH(yinit), no_otherVar, no_switch, NUMERIC_POINTER(settings), otimes, no_otimes); // bjc 2007-05-08
 	
 	/* preform dde calculations */
 	numerics(NUMERIC_POINTER(yinit), 0);

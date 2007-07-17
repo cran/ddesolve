@@ -14,31 +14,26 @@ runPlot <- function()
 {
 	getWinVal(scope="L")
 	
-	yprime <- function(t, y) {
-	    if (t-t0 > tau)
-	    	lag <- pastvalue(t-tau)
-	    else
-	    	lag <- 0
-	    y1 <- P*lag[1]*exp(-lag[1]/theta)-delta*y[1]
-	    return(list(y1, c(dy=y1, exp=exp(-lag[1]/theta))))
-	}
-	#we must also specify the initial value or conditions.
-	yinit <- c(y=initPop)
+	myGrad <- function(t, y) {
+		if (t-t0 >= tau) ylag <- pastvalue(t-tau)
+		else ylag <- 0
+		yexp <- exp(-theta*ylag[1]/A0)
+		yp <- P*ylag[1]*yexp-delta*y[1]
+		return( list(yp, c(dy=yp, yexp=yexp)) ) }
 	
 	#solve the ODE from t0..t1
-	x <- dde(y=yinit, func=yprime, from=t0, to=t1, hbsize=1000) 
+	x <- dde(y=A0, func=myGrad, times=seq(t0,t1), hbsize=1000) 
 	
 	if (ptype=="t") {
-		resetGraph()
-		par(mfrow=c(3,1))
-		plot(x=x$t, y=x$y, type="l", main="Adult Blowfly Population", xlab="Time", ylab="Population (y)")
+		frame(); resetGraph();
+		expandGraph(mfrow=c(3,1),mar=c(4,4,2,1),mgp=c(2.75,.75,0),cex.main=1.5,cex.lab=1.5)
+		plot(x=x$t, y=x$y1, type="l", main="Adult Blowfly Population", xlab="Time", ylab="Population (y)")
 		plot(x=x$t, y=x$dy, type="l", main="Rate of Change of Adult Population", xlab="Time", ylab="delta Population (dy)")
-		plot(x=x$t, y=x$exp, type="l", main="exp(-lag[1]/theta)", xlab="Time", ylab="exp value")
+		plot(x=x$t, y=x$yexp, type="l", main="exp(-theta*ylag[1] / A0)", xlab="Time", ylab="exp value")
 	}
 	else if (ptype=="p") {
-		resetGraph()
-		plot(x, main="Adult Blowfly Population")
-	}
+		frame(); resetGraph();
+		plot(x, main="Adult Blowfly Population") }
 }
 
 #restore working directory once demo is done

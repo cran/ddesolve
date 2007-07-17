@@ -1,3 +1,50 @@
+v.1.00 - July 17, 2007 (Rowan)
+	*revised Users Guide (also added reference to FishRes in PBSmodelling)
+	*revised examples to deal with slight flaw in PBSmodelling's resetGraph().
+	*created *_doc.pdf files for the examples to replace the *_doc.txt files
+		(also altered the win files to get the PDFs).
+
+v.0.63 - July 16, 2007 (Rowan)
+	*revised examples, Rd file
+	*revised icecream example to show use of the argument "parms".
+
+v0.62 - July 13, 2007 (Rowan)
+	*revised examples (blowflies, cooling, icecream)
+	*jon revised Users Guide
+
+v0.61 - July 12, 2007 (Alex)
+	*added ability to have parms argument for maps and switches if parms is given to dde
+
+v0.60 - June 27, 2007 (Rowan)
+	*Revised Rd file
+	*Revised UG
+
+v0.59 - June 10, 2007 (Rowan)
+	*revised ice cream example and created GUI for it
+
+v0.58 - June 10, 2007
+	*changed switch numbering to 1..N range.
+
+v0.57 - June 4, 2007
+	*added call to grad() from output() to ensure that extra info is accurate
+		when interpolating to solve for explicit times.
+
+v0.56 - May 30, 2007
+	*Removed by argument from R and C code
+
+v0.55 - May 30, 2007 (RH)
+	*Merged ACB's 0.54 dde() wrapper with BJC's desolve() wrapper. 
+		only times specified; no (from,to,by)
+
+v0.54 - may 29,2007
+	*fixed bug in dde() where outtimes wasnt passed correctly
+
+v0.53 - may 24,2007
+	*merged Ben's code in
+
+v0.52 - may 18,2007
+	*added switch functionality - still needs documentation
+
 v0.51 - May 06, 2007
 	*renamed initstate to ddeinitstate in C code
 

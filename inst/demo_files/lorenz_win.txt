@@ -3,7 +3,7 @@ window title="The Lorenz Equation" onClose=onClose
 #-----------------------------------------------------
 grid 1 4 sticky=W
 	label text=View: font=bold
-	button text=Docs func=openFile action=demo_files/lorenz_doc.txt
+	button text=Docs func=openFile action=demo_files/lorenz_doc.pdf
 	button text="R Code" func=openFile action=demo/lorenz.r
 	button text=Window func=openFile action=demo_files/lorenz_win.txt
 

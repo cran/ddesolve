@@ -58,7 +58,7 @@ double istep(double *sw0,double *newsws,double *s0,double *news,double *g,
 	     double *newg,double *c,double *err,double t0,double t1,int nsw,
 	     int ns,int *flickedswitch);
 void dde(double *s,double *c,double t0,double t1,double *dt,double eps,
-	 double dout, int ns,int nsw,int nhv,long hbsize,int nlag,int reset,
-	 int fixstep);
+	 double *otimes, int no_otimes, int ns,int nsw,int nhv,
+	 long hbsize,int nlag,int reset, int fixstep); // bjc 2007-05-08
 #endif
 #endif

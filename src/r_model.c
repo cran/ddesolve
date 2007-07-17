@@ -1,11 +1,3 @@
-
-/* Template file for coding d.d.e. models for solv95 - Example is an ode
-   model - Lokta- Volterra P-P model
-
-*/
-
-
-
 #include <math.h>
 #include "ddeq.h"
 #include "ddesolve95.h"
@@ -15,7 +7,6 @@
 /*  Put global variables  here. These should never be written to from      */
 /* grad() or switchfunctions(), directly or indirectly.                  	*/
 /***************************************************************************/
-
 
 
 /***************************************************************************/
@@ -36,9 +27,32 @@ double *sw,*s,*c,t;
 	which passes through zero every 60 time units. Switches may include state
 	variables provided the above conditions are met. Note that to get 'Solver'
 	style switches define twice as many switches and let e.g. sw[1]=-sw[0] */
-
-
 {
+	SEXP fcall, p1, p2, result;
+
+	if (isNull(r_stuff.switchFunc))
+		return;
+
+	/* argument 1 `t' */
+	PROTECT(p1=NEW_NUMERIC(1));
+	memcpy(NUMERIC_POINTER(p1), &t, sizeof(double));
+
+	/* argument 2 `s' */
+	PROTECT(p2=NEW_NUMERIC(data.no_var));
+	memcpy(NUMERIC_POINTER(p2), s, data.no_var*sizeof(double));
+	
+	/* call R user function */
+	if (r_stuff.useParms)
+		PROTECT(fcall = lang4(r_stuff.switchFunc, p1, p2, r_stuff.parms));
+    else
+   		PROTECT(fcall = lang3(r_stuff.switchFunc, p1, p2));
+
+    PROTECT(result = eval(fcall, r_stuff.env));
+    
+	/* copy data from R into `sw' */
+	memcpy(sw, NUMERIC_POINTER(result), data.nsw*sizeof(double));
+
+	UNPROTECT(4);
 }
 
 
@@ -55,6 +69,34 @@ double *s,*c,t;int swno;
 */
 
 {
+	SEXP fcall, p1, p2, p3, result;
+
+	if (isNull(r_stuff.mapFunc))
+		return;
+
+	/* argument 1 `t' */
+	PROTECT(p1=NEW_NUMERIC(1));
+	memcpy(NUMERIC_POINTER(p1), &t, sizeof(double));
+    
+	/* argument 2 `s' */
+	PROTECT(p2=NEW_NUMERIC(data.no_var));
+	memcpy(NUMERIC_POINTER(p2), s, data.no_var*sizeof(double));
+
+	/* argument 3 `switchnum' */
+	PROTECT(p3=NEW_NUMERIC(1));
+	NUMERIC_POINTER(p3)[0] = swno + 1; /* use R's index starting at 1 idiology */
+	
+	/* call R user function */
+	if (r_stuff.useParms)
+    	PROTECT(fcall = lang5(r_stuff.mapFunc, p1, p2, p3, r_stuff.parms));
+    else
+		PROTECT(fcall = lang4(r_stuff.mapFunc, p1, p2, p3));
+    PROTECT(result = eval(fcall, r_stuff.env));
+    
+	/* copy returned data from R into `s' */
+	memcpy(s, NUMERIC_POINTER(result), data.no_var*sizeof(double));
+	
+	UNPROTECT(5);
 }
 
 
@@ -90,7 +132,6 @@ double *g,*s,*c,t;
 	/* argument 2 `s' */
 	PROTECT(p2=NEW_NUMERIC(data.no_var));
 	memcpy(NUMERIC_POINTER(p2), s, data.no_var*sizeof(double));
-
 	
 	/* call R user function */
 	if (r_stuff.useParms)

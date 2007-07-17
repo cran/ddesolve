@@ -3,7 +3,7 @@ window title="Newton\'s Law of Cooling" onClose=onClose
 #-----------------------------------------------------
 grid 1 4 sticky=W
 	label text=View: font=bold
-	button text=Docs func=openFile action=demo_files/cooling_doc.txt
+	button text=Docs func=openFile action=demo_files/cooling_doc.pdf
 	button text="R Code" func=openFile action=demo/cooling.r
 	button text=Window func=openFile action=demo_files/cooling_win.txt
 
@@ -13,8 +13,8 @@ vector names="Tenv Tcup rho t0 t1" \
        labels="'room tempurature (Tenv)' \
                'initial cup tempurature (Tcup)' \
                'cooling constant (rho)' \
-               'start time' \
-               'end time'" \
+               'start time (t0)' \
+               'end time (t1)'" \
        values="25 65 0.1 0 100" \
        func=runPlot vert=T
 
