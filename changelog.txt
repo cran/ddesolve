@@ -1,3 +1,8 @@
+v.1.02 - April 15, 2007 (Alex)
+	*allow gradient to return a list of length one.
+	*set state variable names so they are available for use in the gradient function.
+	*moved documents to correct vignette locations
+	
 v.1.01 - oct 1, 2007 (Alex)
 	*removed c++ style comments to remove warnings for 2.6.0 release
 

@@ -161,8 +161,8 @@ void freeglobaldata()
 
 int testFunc(int no_var, double *test_vars, double t, SEXP *names, PROTECT_INDEX *names_ipx)
 {
-	SEXP fcall, p1, p2, result;
-	int len;
+	SEXP fcall, p1, p2, result, yinit_names, y_names;
+	int len, i;
 	
 	/* argument 1 `t' */
 	PROTECT(p1=NEW_NUMERIC(1));
@@ -171,7 +171,17 @@ int testFunc(int no_var, double *test_vars, double t, SEXP *names, PROTECT_INDEX
 	/* argument 2 `s' */
 	PROTECT(p2=NEW_NUMERIC(no_var));
 	memcpy(NUMERIC_POINTER(p2), test_vars, no_var*sizeof(double));
-	
+
+	/* set state names */
+	yinit_names = GET_NAMES(r_stuff.yinit);
+	PROTECT(y_names = allocVector(STRSXP, no_var));
+	if( isNull(yinit_names) == 0 ) {
+		for( i = 0; i < no_var; i++ ) {
+			SET_STRING_ELT(y_names, i, STRING_ELT(yinit_names, i));
+		}
+		setAttrib(p2, R_NamesSymbol, y_names);
+	}
+
 	/* call R user function */
 	if (r_stuff.useParms)
 		PROTECT(fcall = lang4(r_stuff.gradFunc, p1, p2, r_stuff.parms));
@@ -183,7 +193,7 @@ int testFunc(int no_var, double *test_vars, double t, SEXP *names, PROTECT_INDEX
 		r_stuff.gradFuncListReturn=0;
 		if (LENGTH(result)!=no_var)
 			error("func return error: length of vector (%i) does not match that of initial y values (%i)\n", LENGTH(result), no_var);
-		UNPROTECT(4);
+		UNPROTECT(5);
     	return 0;
     } else if (isVector(result)) {
 		r_stuff.gradFuncListReturn=1;
@@ -192,10 +202,9 @@ int testFunc(int no_var, double *test_vars, double t, SEXP *names, PROTECT_INDEX
 	}
 	
 	p1 = VECTOR_ELT(result, 0);
-	p2 = VECTOR_ELT(result, 1);
 	
-	if (LENGTH(result)!=2)
-		error("func return error: returned list should have length two\n", TYPEOF(p1));
+	if (LENGTH(result)!=2 && LENGTH(result)!=1)
+		error("func return error: returned list should have length one or two\n", TYPEOF(p1));
 	if (!isReal(p1))
 		error("func return error: first element of list should be numeric. (got type \"%i\")\n", TYPEOF(p1));
 	if (!isReal(p2) && !isNull(p2))
@@ -203,14 +212,19 @@ int testFunc(int no_var, double *test_vars, double t, SEXP *names, PROTECT_INDEX
 	if (LENGTH(p1)!=no_var)
 		error("func return error: length of first element vector (%i) does not match that of initial y values (%i)\n", LENGTH(p1), no_var);
 
-	if (isNull(p2))
+	if (LENGTH(result)==1)
 		len = 0;
 	else {
-		len = LENGTH(p2);
-		/* return names - which stays protected even after return */
-		REPROTECT((*names) = GET_NAMES(p2), *names_ipx);
+		p2 = VECTOR_ELT(result, 1);
+		if (isNull(p2))
+			len = 0;
+		else {
+			len = LENGTH(p2);
+			/* return names - which stays protected even after return */
+			REPROTECT((*names) = GET_NAMES(p2), *names_ipx);
+		}
 	}
-	UNPROTECT(4);
+	UNPROTECT(5);
 	return(len);
 }
 
@@ -340,8 +354,8 @@ SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit
 	PROTECT(names = allocVector(STRSXP, no_otherVar + no_var + 1));
 	yinit_names = GET_NAMES(yinit);
 	
-	/* fill up names as <- c("t", names(yinit), names(extra_returned_vector)) */
-	SET_STRING_ELT(names, 0, mkChar("t"));
+	/* fill up names as <- c("time", names(yinit), names(extra_returned_vector)) */
+	SET_STRING_ELT(names, 0, mkChar("time"));
 	for(i=0;i<no_var;i++) {
 		if (isNull(yinit_names)) {
 			/* yuck - possible buffer overflow */

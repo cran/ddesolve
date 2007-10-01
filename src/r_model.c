@@ -120,7 +120,8 @@ double *g,*s,*c,t;
 */
 
 { 
-	SEXP fcall, p1, p2, result;
+	SEXP fcall, p1, p2, result, yinit_names, names;
+	int i;
 	
 	/* store current t, to prevent calls to pastvalue(t) */
 	data.current_t = t;
@@ -132,6 +133,17 @@ double *g,*s,*c,t;
 	/* argument 2 `s' */
 	PROTECT(p2=NEW_NUMERIC(data.no_var));
 	memcpy(NUMERIC_POINTER(p2), s, data.no_var*sizeof(double));
+
+	/* Create the names vector. TODO: do this only once, and not in this function.
+	Perhaps the testFunc section would be more appropriate */	
+	yinit_names = GET_NAMES(r_stuff.yinit);
+	PROTECT(names = allocVector(STRSXP, data.no_var));
+	if( isNull(yinit_names) == 0 ) {
+		for( i = 0; i < data.no_var; i++ ) {
+			SET_STRING_ELT(names, i, STRING_ELT(yinit_names, i));
+		}
+		setAttrib(p2, R_NamesSymbol, names);
+	}
 	
 	/* call R user function */
 	if (r_stuff.useParms)
@@ -151,7 +163,7 @@ double *g,*s,*c,t;
 	} else {
 		memcpy(g, NUMERIC_POINTER(result), data.no_var*sizeof(double));
 	}
-	UNPROTECT(4);
+	UNPROTECT(5);
 }
 
 void storehistory(his,ghis,g,s,c,t)
