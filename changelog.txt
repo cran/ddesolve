@@ -1,3 +1,6 @@
+v.1.01 - oct 1, 2007 (Alex)
+	*removed c++ style comments to remove warnings for 2.6.0 release
+
 v.1.00 - July 17, 2007 (Rowan)
 	*revised Users Guide (also added reference to FishRes in PBSmodelling)
 	*revised examples to deal with slight flaw in PBSmodelling's resetGraph().

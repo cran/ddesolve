@@ -36,7 +36,7 @@ void dde();
 
 #else
 /************************ User Supplied Routines ***************************/
-//void initcons(int *no_vars,int *no_cons);
+/*void initcons(int *no_vars,int *no_cons);*/
 void switchfunctions(double *sw,double *state,double *coeff,double time);
 void map(double *state,double *coeff,double time,int swno);
 void grad(double *g,double *s,double *c,double t);
@@ -59,6 +59,6 @@ double istep(double *sw0,double *newsws,double *s0,double *news,double *g,
 	     int ns,int *flickedswitch);
 void dde(double *s,double *c,double t0,double t1,double *dt,double eps,
 	 double *otimes, int no_otimes, int ns,int nsw,int nhv,
-	 long hbsize,int nlag,int reset, int fixstep); // bjc 2007-05-08
+	 long hbsize,int nlag,int reset, int fixstep); /* bjc 2007-05-08*/
 #endif
 #endif

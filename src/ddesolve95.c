@@ -45,7 +45,7 @@ void output(double *s,double t)
 	for( i = 0; i < data.no_var; i++ )
 		data.vals[i+1][data.vals_ind] = s[i];
 	
-	//ACB hack - call grad to pull out any other data
+	/*ACB hack - call grad to pull out any other data*/
 	if( data.no_otherVars > 0 )
 		grad(dummy_var,s,NULL,t);
 	
@@ -69,8 +69,8 @@ void output(double *s,double t)
 void numerics(double *c,int cont)
 { 
 	static double *s;
-	double t0, t1, dt, *otimes; // bjc 2007-05-08
-	int ns, nsw, nhv, nlag, reset=1, fixstep=0, no_otimes; // bjc 2007-05-08
+	double t0, t1, dt, *otimes; /* bjc 2007-05-08*/
+	int ns, nsw, nhv, nlag, reset=1, fixstep=0, no_otimes; /* bjc 2007-05-08*/
 	static int first=1;
 	long hbsize;
 	ns=data.no_var;
@@ -82,7 +82,7 @@ void numerics(double *c,int cont)
 	dt=data.dt;
 	hbsize=data.hbsize;
 	otimes=data.otimes;
-	no_otimes=data.no_otimes; // bjc 2007-05-08
+	no_otimes=data.no_otimes; /* bjc 2007-05-08*/
   
 	if (cont) {
 		reset=0;
@@ -94,12 +94,12 @@ void numerics(double *c,int cont)
 		s=(double *)calloc(data.no_var,sizeof(double));
 		ddeinitstate(s,c,t0);
 	}
-	dde(s,c,t0,t1,&dt,data.tol,otimes,no_otimes,ns,nsw,nhv,hbsize,nlag,reset,fixstep); // bjc 2007-05-08
+	dde(s,c,t0,t1,&dt,data.tol,otimes,no_otimes,ns,nsw,nhv,hbsize,nlag,reset,fixstep); /* bjc 2007-05-08*/
 	data.dt=dt;
 }
 
 /*===========================================================================*/
-void setupglobaldata(int no_vars, int no_otherVars, int no_switch, double *settings, double *otimes, int no_otimes) // bjc 2007-05-08
+void setupglobaldata(int no_vars, int no_otherVars, int no_switch, double *settings, double *otimes, int no_otimes) /* bjc 2007-05-08*/
 { 
 	int i;
 
@@ -119,8 +119,8 @@ void setupglobaldata(int no_vars, int no_otherVars, int no_switch, double *setti
 	data.nlag=1;        /* Number of lag markers per history variable (set to 1 if unsure)*/
 
 	/* enter out times into the data structure */
-	data.otimes = otimes; // bjc 2007-05-08: could be NULL
-	data.no_otimes = no_otimes; // bjc 2007-05-08: >= 0  
+	data.otimes = otimes; /* bjc 2007-05-08: could be NULL*/
+	data.no_otimes = no_otimes; /* bjc 2007-05-08: >= 0  */
 
 	data.vals_size=1000; /* size will grow, this is just initial min size */
 	data.vals_ind=0;
@@ -288,8 +288,8 @@ SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit
 {
 	SEXP list, vect, extra_names, yinit_names, names;
 	PROTECT_INDEX extra_names_ipx;
-	double *p, *otimes; // bjc 2007-05-08
-	int i,j, no_var, no_otherVar, no_switch, no_otimes; // bjc 2007-05-08
+	double *p, *otimes; /* bjc 2007-05-08*/
+	int i,j, no_var, no_otherVar, no_switch, no_otimes; /* bjc 2007-05-08*/
 	char ch_buf[CH_BUF_SIZE];
 	
 	/* save R global data for later */
@@ -298,7 +298,7 @@ SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit
 	if(!isEnvironment(env)) error("‘env’ should be an environment");
 	if(!isNumeric(yinit)) error("‘yinit’ should be a numeric vector");
 	if(!isNumeric(settings)) error("‘settings’ should be a numeric vector");
-	if(!isNumeric(outtimes) && !isNull(outtimes)) error("‘times’ should be a numeric vector or NULL"); // bjc 2007-05-08: check times vector
+	if(!isNumeric(outtimes) && !isNull(outtimes)) error("‘times’ should be a numeric vector or NULL"); /* bjc 2007-05-08: check times vector*/
 	
 	r_stuff.env = env;
 	r_stuff.gradFunc = gradFunc;
@@ -306,7 +306,7 @@ SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit
 	r_stuff.mapFunc = mapFunc;
 	r_stuff.parms = parms;
 	r_stuff.yinit = yinit;
-	r_stuff.outtimes = outtimes; // bjc 2007-05-08: add times to R data
+	r_stuff.outtimes = outtimes; /* bjc 2007-05-08: add times to R data*/
 	
 	/* check if supplied function is func(y,t) or func(y,t,parms) */
 	list = FORMALS(gradFunc);
@@ -330,7 +330,7 @@ SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit
 	/* test switchfunc and get number of results returned to set nsw */
 	no_switch = testSwitchFunc(no_var, NUMERIC_POINTER(yinit), NUMERIC_POINTER(settings)[1]);
 	
-	//test mapfunc for each nsw and check return val length
+	/*test mapfunc for each nsw and check return val length*/
 	for( i = 1; i <= no_switch; i++ )
 		testMapFunc(no_var, NUMERIC_POINTER(yinit), NUMERIC_POINTER(settings)[1], i);
 	
@@ -363,16 +363,16 @@ SEXP startDDE(SEXP gradFunc, SEXP switchFunc, SEXP mapFunc, SEXP env, SEXP yinit
 
 	/* bjc 2007-05-08:  check that the output times are numeric and get 
 	   a pointer and length */
-	if (!isNumeric(outtimes)) { // bjc 2007-05-08: if NULL
+	if (!isNumeric(outtimes)) { /* bjc 2007-05-08: if NULL*/
 	    otimes = NULL;
 	    no_otimes = 0;
 	}
-	else { // bjc 2007-05-08: if numeric
+	else { /* bjc 2007-05-08: if numeric*/
 	    otimes = NUMERIC_POINTER(outtimes); 
 	    no_otimes = LENGTH(outtimes);
 	}
 	
-	setupglobaldata(LENGTH(yinit), no_otherVar, no_switch, NUMERIC_POINTER(settings), otimes, no_otimes); // bjc 2007-05-08
+	setupglobaldata(LENGTH(yinit), no_otherVar, no_switch, NUMERIC_POINTER(settings), otimes, no_otimes); /* bjc 2007-05-08*/
 	
 	/* preform dde calculations */
 	numerics(NUMERIC_POINTER(yinit), 0);

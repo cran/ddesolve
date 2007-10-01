@@ -290,7 +290,7 @@ double pastvalue(i,t,markno)
 	else
 #endif
 	{ HERMITE(res,x0,x1,y[k],y[k1],g[k],g[k1],t);}
-	//  if (x[k1]==x[k]) return(y[k1]);
+	/*  if (x[k1]==x[k]) return(y[k1]);*/
 	/*printf("\nx0=%g   x1=%g  yk=%g  yk1=%g\n  gk=%g  gk1=%g  res=%g",
 	  x0,x1,y[k],y[k1],g[k],g[k1],res); */
 	history.lagmarker[i][markno]=k;
@@ -450,7 +450,7 @@ double istep(sw0,newsws,s0,news,g,newg,c,err,t0,t1,nsw,ns,flickedswitch)
 
 
 
-void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep)  // bjc 2007-05-08: added otimes
+void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep)  /* bjc 2007-05-08: added otimes*/
 	double *s,      /* State variables */
 	*c,      /* coefficients */
 	t0,t1,   /* start and stop times */
@@ -477,7 +477,7 @@ void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep
 	double D,Da,errmax,rerr,target,t,ti,
 	       *err,*newsws,*sws,*news,*newg,*dum,*sp,*nswp,*swp,*nsp,*e0,*scale;
 	static double *g,mindt,maxdt;
-	static double tout, oldt, *sout, *olds, *oldg; // bjc 2007-05-08
+	static double tout, oldt, *sout, *olds, *oldg; /* bjc 2007-05-08*/
 	static int first=1;
 	long i,iout=1L;
 	int swi;
@@ -488,8 +488,8 @@ void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep
 	err=(double *)calloc(ns,sizeof(double));
 	e0=(double *)calloc(ns,sizeof(double));
 	scale=(double *)calloc((size_t)ns,sizeof(double));
-	olds=(double *)calloc(ns, sizeof(double)); // bjc 2007-05-08
-	oldg=(double *)calloc(ns, sizeof(double)); // bjc 2007-05-08
+	olds=(double *)calloc(ns, sizeof(double)); /* bjc 2007-05-08*/
+	oldg=(double *)calloc(ns, sizeof(double)); /* bjc 2007-05-08*/
 	statescale(scale);
 	if (nsw) switchfunctions(sws,s,c,t0);
 	if (reset) { 
@@ -500,7 +500,7 @@ void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep
 		mindt=(*dt)*1e-9;
 		maxdt=(*dt)*100.0;
 		g=(double *)calloc(ns,sizeof(double));
-		sout=(double *)calloc(ns, sizeof(double)); // bjc 2007-05-08
+		sout=(double *)calloc(ns, sizeof(double)); /* bjc 2007-05-08*/
 		inithisbuff(nhv,hbsize,nlag);
 		grad(g,s,c,t0);
 		updatehistory(g,s,c,t0);
@@ -512,8 +512,8 @@ void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep
 	if (otimes[0]==t0) { 
 		output(s,t0); 
 		iout++; 
-	} // bjc 2007-05-08
-	tout = otimes[iout - 1]; // bjc 2007-05-08
+	} /* bjc 2007-05-08*/
+	tout = otimes[iout - 1]; /* bjc 2007-05-08*/
 	while (t0<t1) {
 		if (t0+D>t1) { 
 			target=t1;
@@ -553,7 +553,7 @@ void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep
 				}
 				output(sout,tout);
 				iout++;
-				tout = otimes[iout - 1]; // update iout then tout
+				tout = otimes[iout - 1]; /* update iout then tout*/
 			}
 
 			t0=t;
@@ -584,10 +584,10 @@ void dde(s,c,t0,t1,dt,eps,otimes,no_otimes, ns,nsw,nhv,hbsize,nlag,reset,fixstep
 	}
 	(*dt)=D;
 	/* bjc 2007-05-08: the final output is already covered above */
-	// if (dout && (otimes[no_otimes-1]==t1)) output(s,t1); 
+	/* if (dout && (otimes[no_otimes-1]==t1)) output(s,t1); */
 	for (i=0;i<ns;i++) sp[i]=s[i]; /* copying results to correct address */
 	free(swp);free(nswp);free(nsp);free(err);free(e0);free(newg);free(scale);
-	free(sout); free(olds); free(oldg); // bjc 2007-05-08
+	free(sout); free(olds); free(oldg); /* bjc 2007-05-08*/
 }
 
 

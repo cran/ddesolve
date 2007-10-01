@@ -17,8 +17,8 @@ typedef struct {
 	double **vals, *tmp_other_vals;
 	int vals_size, vals_ind;
 	double current_t;
-	double *otimes; // bjc 2007-05-08
-	int no_otimes; // bjc 2007-05-08
+	double *otimes; /* bjc 2007-05-08*/
+	int no_otimes; /* bjc 2007-05-08*/
 } globaldatatype;
 
 typedef struct {
@@ -28,7 +28,7 @@ typedef struct {
 	SEXP mapFunc;
 	SEXP yinit;
 	SEXP parms;
-	SEXP outtimes; // bjc 2007-05-08
+	SEXP outtimes; /* bjc 2007-05-08*/
 	int useParms;
 	int gradFuncListReturn;
 } globalRdatatype;
