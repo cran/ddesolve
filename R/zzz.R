@@ -1,14 +1,25 @@
-
-.First.lib <- function(lib, pkg)
+.First.lib <- function(lib,pkg)
 {
-	library.dynam("ddesolve", pkg, lib)
+	pkg_info <- utils::sessionInfo( package=pkg )$otherPkgs[[ pkg ]]
+	pkg_date <- strsplit( pkg_info$Packaged, " " )[[1]][1]
+
+	userguide_path <- system.file( "doc/ddesolveIntro.pdf", package = pkg )
+	
 	cat("
-ddesolve 1.02 -- based on solv95 by Simon Wood
+ddesolve", pkg_info$Version, "-- Copyright (C) 2007-2010 Fisheries & Oceans Canada
+(based  on solv95 by Simon Wood)
 
-A complete User Guide appears as ddesolve-UG.pdf in the root/doc 
-directory of ddesolve. To use this package effectively, please consult 
-the guide.
+--------------------------------------------------
+*****  DEPRECATED - use package PBSddesolve  *****
+--------------------------------------------------
 
-Last built on Mon April 16, 2007 (19:49:42)
+Type 'openVig()' on the command line to see the vignette:
+", userguide_path, "
+
+Packaged on", pkg_date, "
+Pacific Biological Station, Nanaimo
+
+
 ")
 }
+
